@@ -1,0 +1,23 @@
+prompts: 
+  categorization: >
+    Suppose you are analyzing company 10-K filings. 
+    Given the context in the following chunk of text summarize the chunk in a single word. 
+    The word should come from one of the following categories: 
+    - markets
+    - equity
+    - debt
+    - personnel
+    - industry
+    - product
+    - litigation
+    - economic
+    - risk
+    - growth
+    - acquisition
+    - merger
+    - supply chain
+    - operations
+    When the chunk contains context relevant to multiple categories, summarize based on the category most descriptive of the text. 
+    If the summary does not fit into one of the categories, provide a blank response. 
+    In your response do not include anything other than the word or empty response. 
+    Here is the chunk:"

@@ -1,0 +1,11 @@
+snowflake:
+  user: "mlake@continuus.ai"
+  account: "CONTINUUSTECHNOLOGIES-DEVAZR"
+  authenticator: "externalbrowser"
+  warehouse: "BIDS_WH"
+  role: "SNOWFLAKE-PI30485-DEVELOPER"
+  database: "SEC_FILINGS_DB"
+raw: 
+  database: "SEC_FILINGS_DB"
+  schema: "RAW_DATA"
+  stage: "10_K_FILINGS"

@@ -2,7 +2,8 @@
 venv/
 
 # Configuration files
-config/
+config/.*yml
+!config/prompts/
 
 # Data files
 data/
