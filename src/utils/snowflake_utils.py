@@ -39,3 +39,29 @@ def load_snowflake_config():
 def get_stage(schema): 
     config = get_schema_config(schema)
     return f'{config["database"]}.{config["schema"]}.{config["stage"]}'
+
+def load_to_stage(schema, files): 
+    stage = get_stage(schema)
+    try: 
+        conn = snowflake.connector.connect(**load_snowflake_config())
+        curr = conn.cursor()
+        for file in files:
+            print(f"Uploading {file} to stage {stage}...\\n") 
+            curr.execute(f"PUT file://{file}/*.txt @{stage} AUTO_COMPRESS=TRUE")
+    finally:
+        curr.close()
+        conn.close()
+        print(f"Successfully uploaded {len(files)} files to stage {stage}...\n")
+
+
+def clear_stage(schema):
+    stage = get_stage(schema)
+    try: 
+        conn = snowflake.connector.connect(**load_snowflake_config())
+        curr = conn.cursor()
+        print(f"Removing files from stage {stage}...\n")
+        curr.execute(f"REMOVE @{stage}")
+    finally:
+        curr.close()
+        conn.close()
+        print(f"Successfully removed files from stage {stage}...\n")

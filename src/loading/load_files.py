@@ -3,7 +3,7 @@ from sec_edgar_downloader import Downloader
 import snowflake.connector as sf
 from pathlib import Path
 from bs4 import BeautifulSoup
-from src.utils.snowflake_utils import load_snowflake_config, get_stage
+from src.utils.snowflake_utils import load_to_stage, clear_stage
 from src.utils.file_utils import get_leaf_folder, create_text_file
 import os
 
@@ -61,24 +61,12 @@ def upload_files(path,num_tickers = 1,download = False, upload=False):
 
     
     dir = Path(f'{path}\\sec-edgar-filings')
-    stage = get_stage("raw")
     tickers = get_sp500_tickers()
     if download: 
         download_10k_filings(tickers,num_tickers, path, amount=1)
 
-    print(dir)
     if upload:
-        try: 
-            conn = sf.connect(**load_snowflake_config())
-            cur = conn.cursor()
-            file_paths = [str(subdir) for subdir in dir.iterdir() if subdir.is_dir()]
-            for fp in file_paths:
-                ticker = fp.split('\\')[-1]
-                leaf = get_leaf_folder(fp)
-                p = leaf.replace('\\','/')
-                put_sql = f'PUT file://{p}/*.txt @{stage}/{ticker} AUTO_COMPRESS=FALSE'
-                cur.execute(put_sql)
-        finally: 
-            cur.close()
-            conn.close()
-            print("Upload process completed.")
+        clear_stage("raw")
+        files = [get_leaf_folder(str(subdir)).replace("\\","/") for subdir in dir.iterdir() if subdir.is_dir()]
+        load_to_stage("raw",files)
+        print("Upload process completed.")
