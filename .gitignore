@@ -1,0 +1,17 @@
+# Virtual environment
+venv/
+
+# Configuration files
+config/
+
+# Data files
+data/
+
+# Python cache and logs
+__pycache__/
+
+logs/
+
+
+# Ignore environment files
+.env
