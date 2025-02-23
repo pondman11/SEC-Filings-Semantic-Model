@@ -9,3 +9,14 @@ raw:
   database: "SEC_FILINGS_DB"
   schema: "RAW_DATA"
   stage: "10_K_FILINGS"
+  udfs:
+    source: "rag_processing.py" 
+    rag_processing: 
+      declaration: >
+        create or replace function text_chunker(text string)
+        returns table (chunk varchar)
+        language python
+        runtime_version='3.9'
+        handler='rag_processing.prcoess'
+        imports=('@UDFS/rag_processing.py')
+       

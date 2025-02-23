@@ -65,3 +65,37 @@ def clear_stage(schema):
         curr.close()
         conn.close()
         print(f"Successfully removed files from stage {stage}...\n")
+
+
+def load_udfs(schema):
+    config = load_config(schema)
+    stage = f'{config["database"]}.{config["schema"]}.UDFS'
+    try: 
+        conn = snowflake.connector.connect(**load_snowflake_config())
+        curr = conn.cursor()
+        print(f"Loading UDFs to stage {stage}...\n")
+        curr.execute(f'PUT file://src/utils/snowflake_udfs/{config["udfs"]["source"]} @{stage} AUTO_COMPRESS=FALSE OVERWRITE=TRUE')
+    finally:
+        curr.close()
+        conn.close()
+        print(f"Successfully loaded UDFs to stage {stage}...\n")
+
+def create_udfs(schema,function): 
+    config = load_config(schema)
+    stage = f'{config["database"]}.{config["schema"]}.UDFS'
+    try: 
+        conn = snowflake.connector.connect(**load_snowflake_config())
+        curr = conn.cursor()
+        file_exists = curr.execute(f"LIST @{stage} LIKE {config['udfs']['source']}") 
+
+        if file_exists is None:
+            load_udfs(stage)
+        
+        curr.execute(f'{config["udfs"][function]["declaration"]}')
+
+    finally: 
+        curr.close()
+        conn.close()
+        print(f"Successfully created UDF {function}...\n")
+
+  
