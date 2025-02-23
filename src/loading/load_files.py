@@ -44,7 +44,7 @@ def download_10k_filings(tickers, num_tickers, download_path, amount=1):
                 html = file.read()
             date, text = clean_html(html)
             os.remove(f'{html_path}\\full-submission.txt')
-            create_text_file(f'{html_path}_{ticker}_{date}.txt',text)
+            create_text_file(f'{html_path}\{ticker}_{date}.txt',text)
             os.remove(f'{html_path}\\primary-document.html')
         except Exception as e:
             print(f"Error downloading filings for {ticker}: {e}")
