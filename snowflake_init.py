@@ -4,7 +4,8 @@ import os
 
 def load_snowflake_config():
     """Load Snowflake credentials from YAML configuration file."""
-    with open("config/snowflake_config.yml", "r") as file:
+    config_path = os.path.join(os.path.dirname(__file__), "config", "snowflake_config.yml")
+    with open(config_path, "r") as file:
         config = yaml.safe_load(file)
     return config["snowflake"]
 
@@ -35,7 +36,7 @@ def main():
     # Connect to Snowflake
     conn = snowflake.connector.connect(
         user=snowflake_config["user"],
-        password=snowflake_config["password"],
+        authenticator=snowflake_config["authenticator"],
         account=snowflake_config["account"],
         warehouse=snowflake_config["warehouse"],
         role=snowflake_config["role"],
