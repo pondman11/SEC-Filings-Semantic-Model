@@ -17,6 +17,7 @@ raw:
         returns table (chunk varchar)
         language python
         runtime_version='3.9'
-        handler='rag_processing.prcoess'
+        packages = ('snowflake-snowpark-python','langchain', 'pandas')
+        handler='rag_processing.process'
         imports=('@UDFS/rag_processing.py')
        

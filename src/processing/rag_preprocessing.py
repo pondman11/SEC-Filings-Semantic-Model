@@ -2,7 +2,7 @@ from src.utils.snowflake_utils import create_udfs, load_snowflake_config
 from snowflake.snowpark import Session
 from snowflake.snowpark.functions import col
 from snowflake.cortex import complete 
-
+   
 def call_model():
     config = load_snowflake_config()
     session = Session.builder.configs(config).create()
@@ -11,3 +11,7 @@ def call_model():
     df = df.with_column("completion",out)
     print(df.show())
     session.close()
+
+def main():
+    #create_udfs("raw","rag_processing")
+    call_model()

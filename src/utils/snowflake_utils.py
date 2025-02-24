@@ -86,11 +86,13 @@ def create_udfs(schema,function):
     try: 
         conn = snowflake.connector.connect(**load_snowflake_config())
         curr = conn.cursor()
-        file_exists = curr.execute(f"LIST @{stage} LIKE {config['udfs']['source']}") 
+        file_exists = curr.execute(f"LIST @{stage} PATTERN='.*{config['udfs']['source']}'") 
 
         if file_exists is None:
-            load_udfs(stage)
+            load_udfs(schema)
         
+        load_udfs(schema)
+        curr.execute(f'USE SCHEMA {config["database"]}.{config["schema"]};')
         curr.execute(f'{config["udfs"][function]["declaration"]}')
 
     finally: 
