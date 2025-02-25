@@ -13,5 +13,5 @@ def call_model():
     session.close()
 
 def main():
-    #create_udfs("raw","rag_processing")
-    call_model()
+    create_udfs("raw","rag_processing")
+    #call_model()

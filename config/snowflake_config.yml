@@ -13,11 +13,10 @@ raw:
     source: "rag_processing.py" 
     rag_processing: 
       declaration: >
-        create or replace function text_chunker(text string)
+        create or replace function chunk_text(text string)
         returns table (chunk varchar)
         language python
         runtime_version='3.9'
-        packages = ('snowflake-snowpark-python','langchain', 'pandas')
-        handler='rag_processing.process'
-        imports=('@UDFS/rag_processing.py')
-       
+        packages = ('pandas','langchain')
+        handler='rag_processing.chunk_text'
+        imports=('@UDFS/rag_processing.py');
