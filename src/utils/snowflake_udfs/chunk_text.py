@@ -2,7 +2,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import pandas as pd
 
 class chunk_text: 
-    
+
     def process(self,pdf_text: str):
         
         text_splitter = RecursiveCharacterTextSplitter(

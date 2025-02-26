@@ -10,13 +10,24 @@ raw:
   schema: "RAW_DATA"
   stage: "10_K_FILINGS"
   udfs:
-    source: "rag_processing.py" 
-    rag_processing: 
+    chunk_text:
+      source: "chunk_text.py" 
       declaration: >
         create or replace function chunk_text(text string)
         returns table (chunk varchar)
         language python
         runtime_version='3.9'
         packages = ('pandas','langchain')
-        handler='rag_processing.chunk_text'
-        imports=('@UDFS/rag_processing.py');
+        handler='chunk_text.chunk_text'
+        imports=('@UDFS/chunk_text.py');
+    read_text:
+      source: "read_file.py"
+      declaration: >
+        create or replace function read_file(stage_path string)
+        returns table (text string)
+        language python
+        runtime_version='3.9'
+        packages = ('snowflake-snowpark-python')
+        handler='read_file.read_file'
+        imports=('@UDFS/read_file.py');
+
