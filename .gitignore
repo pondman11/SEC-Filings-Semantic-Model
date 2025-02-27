@@ -2,8 +2,8 @@
 venv/
 
 # Configuration files
-config/.*yml
-!config/prompts/
+config/snowflake_connection_config.yml
+
 
 # Data files
 data/
