@@ -1,14 +1,33 @@
-snowflake:
-  user: "mlake@continuus.ai"
-  account: "CONTINUUSTECHNOLOGIES-DEVAZR"
-  authenticator: "externalbrowser"
-  warehouse: "BIDS_WH"
-  role: "SNOWFLAKE-PI30485-DEVELOPER"
-  database: "SEC_FILINGS_DB"
 raw: 
   database: "SEC_FILINGS_DB"
   schema: "RAW_DATA"
-  stage: "10_K_FILINGS"
+  tables: 
+    10_K_CHUNKS: 
+      ID: 
+        TYPE: "INTEGER"
+      RELATIVE_PATH: 
+        TYPE: "VARCHAR(16777216)" 
+      SIZE: 
+        TYPE: "NUMBER(38,0)"
+      FILE_URL: 
+        TYPE: "VARCHAR(16777216)"
+      SCOPED_FILE_URL: 
+        TYPE: "VARCHAR(16777216)" 
+      CHUNK: 
+        TYPE: "VARCHAR(16777216)"
+      CATEGORY: 
+        TYPE: "VARCHAR(16777216)"
+      TICKER: 
+        TYPE: "VARCHAR(16777216)"
+      AS_OF_DATE: 
+        TYPE: "VARCHAR(16777216)"
+  stages: 
+    10_K_FILINGS: 
+      requires_sse: true
+      is_directory: true
+    UDFS: 
+      requires_sse: false
+      is_directory: false
   udfs:
     chunk_text:
       source: "chunk_text.py" 
@@ -30,4 +49,3 @@ raw:
         packages = ('snowflake-snowpark-python')
         handler='read_file.read_file'
         imports=('@UDFS/read_file.py');
-

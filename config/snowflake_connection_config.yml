@@ -1,0 +1,7 @@
+snowflake:
+  user: "mlake@continuus.ai"
+  account: "CONTINUUSTECHNOLOGIES-DEVAZR"
+  authenticator: "externalbrowser"
+  warehouse: "BIDS_WH"
+  role: "SNOWFLAKE-PI30485-DEVELOPER"
+  database: "SEC_FILINGS_DB"

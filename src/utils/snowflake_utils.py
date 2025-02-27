@@ -2,102 +2,160 @@ import yaml
 import os
 import snowflake.connector
 
-def load_config(env):
+def load_config(file_name):
     """Load Snowflake credentials from YAML configuration file."""
-    config_path = os.path.join(os.path.dirname(__file__), "..","..","config", "snowflake_config.yml")
+    config_path = os.path.join(os.path.dirname(__file__), "..","..","config", file_name)
     with open(config_path, "r") as file:
         config = yaml.safe_load(file)
-    return config[env]
+    return config
 
-def check_snowflake_database():
-    """Check if the Snowflake database exists."""
-    config = load_snowflake_config()
-    
+def connect(): 
+    config = get_snowflake_config()
     conn = snowflake.connector.connect(
         user=config["user"],
-        password=config["password"],
+        authenticator=config["authenticator"],
         account=config["account"],
         warehouse=config["warehouse"],
-        role=config["role"],
+        database=config["database"],
+        role=config["role"]
     )
+    return conn
 
+def check_snowflake_database(conn):
+    """Check if the Snowflake database exists."""
+    
     cur = conn.cursor()
     cur.execute("SHOW DATABASES LIKE 'SEC_FILINGS_DB'")
 
     database_exists = cur.fetchone() is not None
     cur.close()
-    conn.close()
 
     return database_exists
 
 def get_schema_config(schema):
-    return load_config(schema)
+    config = load_config("schema_config.yml")
+    return config
 
-def load_snowflake_config(): 
-    return load_config("snowflake")
+def get_snowflake_config(): 
+    config = load_config("snowflake_connection_config.yml")
+    return config["snowflake"]
 
-def get_stage(schema): 
+def get_stage_name(schema,stage): 
     config = get_schema_config(schema)
-    return f'{config["database"]}.{config["schema"]}.{config["stage"]}'
+    return f'{config["database"]}.{config["schema"]}.{stage}'
 
-def load_to_stage(schema, files): 
-    stage = get_stage(schema)
+def load_to_stage(conn, schema, files): 
+    stage = get_stage_name(schema)
     try: 
-        conn = snowflake.connector.connect(**load_snowflake_config())
         curr = conn.cursor()
         for file in files:
             print(f"Uploading {file} to stage {stage}...\\n") 
             curr.execute(f"PUT file://{file}/*.txt @{stage} AUTO_COMPRESS=TRUE")
     finally:
         curr.close()
-        conn.close()
         print(f"Successfully uploaded {len(files)} files to stage {stage}...\n")
 
 
-def clear_stage(schema):
-    stage = get_stage(schema)
+def clear_stage(conn, schema):
+    stage = get_stage_name(schema)
     try: 
-        conn = snowflake.connector.connect(**load_snowflake_config())
         curr = conn.cursor()
         print(f"Removing files from stage {stage}...\n")
         curr.execute(f"REMOVE @{stage}")
     finally:
         curr.close()
-        conn.close()
         print(f"Successfully removed files from stage {stage}...\n")
 
 
-def load_udfs(schema):
-    config = load_config(schema)
-    stage = f'{config["database"]}.{config["schema"]}.UDFS'
+def stage_udf_file(conn,schema_config,udf):
+    stage = f'{schema_config["database"]}.{schema_config["schema"]}.UDFS'
     try: 
-        conn = snowflake.connector.connect(**load_snowflake_config())
         curr = conn.cursor()
         print(f"Loading UDFs to stage {stage}...\n")
-        curr.execute(f'PUT file://src/utils/snowflake_udfs/{config["udfs"]["source"]} @{stage} AUTO_COMPRESS=FALSE OVERWRITE=TRUE')
+        curr.execute(f'PUT file://src/utils/snowflake_udfs/{schema_config["udfs"][udf]["source"]} @{stage} AUTO_COMPRESS=FALSE OVERWRITE=TRUE')
     finally:
         curr.close()
-        conn.close()
         print(f"Successfully loaded UDFs to stage {stage}...\n")
 
-def create_udfs(schema,function): 
-    config = load_config(schema)
-    stage = f'{config["database"]}.{config["schema"]}.UDFS'
+def create_udf(conn,schema_config,udf,stage="UDFS"): 
+    stage = f'{schema_config["database"]}.{schema_config["schema"]}.{stage}'
     try: 
-        conn = snowflake.connector.connect(**load_snowflake_config())
         curr = conn.cursor()
-        file_exists = curr.execute(f"LIST @{stage} PATTERN='.*{config['udfs']['source']}'") 
-
-        if file_exists is None:
-            load_udfs(schema)
-        
-        load_udfs(schema)
-        curr.execute(f'USE SCHEMA {config["database"]}.{config["schema"]};')
-        curr.execute(f'{config["udfs"][function]["declaration"]}')
+        stage_udf_file(conn,schema_config,udf)
+        print(f"Declaring UDF {udf}...\n")
+        curr.execute(f'USE SCHEMA {schema_config["database"]}.{schema_config["schema"]};')
+        curr.execute(f'{schema_config["udfs"][udf]["declaration"]}')
 
     finally: 
         curr.close()
-        conn.close()
-        print(f"Successfully created UDF {function}...\n")
+        print(f"Successfully created UDF {udf}...\n")
 
-  
+def create_udfs(conn,schema_config):
+    for udf in schema_config["udfs"].keys():
+        create_udf(conn,schema_config,udf)
+
+def create_database(conn,schema_config): 
+    try: 
+        curr = conn.cursor()
+        curr.execute(f"CREATE DATABASE IF NOT EXISTS {schema_config['database']}")
+    finally: 
+        curr.close()
+        print(f"Successfully created database {schema_config['database']}...\n") 
+
+def create_schema(conn,schema_config):
+    try: 
+        curr = conn.cursor()
+        curr.execute(f"CREATE SCHEMA IF NOT EXISTS {schema_config['database']}.{schema_config['schema']}")
+    finally: 
+        curr.close()
+        print(f"Successfully created schema {schema_config['schema']}...\n")
+
+def create_stage(conn,schema_config,stage):
+    try: 
+        curr = conn.cursor()
+        sql = [f'CREATE OR REPLACE STAGE {schema_config["database"]}.{schema_config["schema"]}."{stage}"']
+        if schema_config["stages"][stage]["requires_sse"]: 
+            sql.append(" ENCRYPTION = (TYPE = 'SNOWFLAKE_SSE')")
+        if schema_config["stages"][stage]["is_directory"]: 
+            sql.append(" DIRECTORY = ( ENABLE = TRUE )")
+        sql.append(";")
+        sql = "".join(sql)
+        curr.execute(sql)
+
+    finally: 
+        curr.close()
+        print(f"Successfully created stage {stage}...\n")
+
+def create_stages(conn,schema_config): 
+    for stage in schema_config["stages"].keys(): 
+        create_stage(conn,schema_config,stage)
+
+def create_table(conn,schema_config,table):
+    try:
+        curr = conn.cursor()
+        sql = [f'CREATE OR REPLACE TABLE {schema_config["database"]}.{schema_config["schema"]}."{table}" (\n']
+        columns = schema_config['tables'][table].keys()
+        for i, column in enumerate(columns): 
+            sql.append(f"{column} {schema_config['tables'][table][column]['TYPE']}{',' if i < len(columns) - 1 else ''}\n")
+        sql.append(");")
+        sql = "".join(sql)
+        curr.execute(sql)
+    finally: 
+        curr.close()
+        print(f"Successfully created table {table}...\n")
+
+def create_tables(conn,schema_config): 
+    for table in schema_config["tables"].keys(): 
+        create_table(conn,schema_config,table)
+
+def configure_environment(conn,schema_config): 
+    create_database(conn,schema_config)
+    create_schema(conn,schema_config)
+    create_stages(conn,schema_config)
+    create_tables(conn,schema_config)
+    create_udfs(conn,schema_config)
+
+def configure_environments(conn): 
+    schema_config = get_schema_config("schema_config.yml")
+    for schema in schema_config.keys(): 
+        configure_environment(conn,schema_config[schema])
