@@ -10,12 +10,12 @@ import os
 
 class SECEdgarUploader: 
 
-    def __init__(self,file_type,conn = None): 
+    def __init__(self,filing_type,conn = None): 
         self.conn = conn if conn != None else connect()
-        self.file_path = os.path.join(os.path.dirname(__file__),"..","..","data",file_type)
+        self.file_path = os.path.join(os.path.dirname(__file__),"..","..","data",filing_type)
         self.dl = Downloader("Continuus", "mlake@continuus.ai",download_folder=self.file_path)
         
-    def __download_filing(self,cik,filing_type):
+    def __download_filing(self,path,cik,filing_type):
             try:
                 print(f'Downloading 10-K filing(s) for {cik}...')
                 self.dl.get(
@@ -24,13 +24,13 @@ class SECEdgarUploader:
                     limit=1,
                     download_details=True
                 )
-                self.__replace_html_file(cik,filing_type)
+                self.__replace_html_file(path,cik,filing_type)
                 print(f"Successfully downloaded {filing_type} filing for {cik}.\n")
             except Exception as e:
                 print(f"Error downloading {filing_type} filing for {cik}: {e}")
 
-    def __replace_html_file(self,cik):
-        html_path = get_leaf_folder(f'{self.file_path}\\sec-edgar-filings\\{cik}')
+    def __replace_html_file(self,path,cik,filing_type):
+        html_path = get_leaf_folder(f'{path}\\sec-edgar-filings\\{cik}\\{filing_type}')
         with open(f'{html_path}\primary-document.html', 'r') as file:
             html = file.read()
         date, text = self.__clean_html(html)
@@ -46,20 +46,24 @@ class SECEdgarUploader:
 
         return date, text[idx:]
 
-    def __upload_filing(self,filing_type,cik):
+    def __upload_filing(self,path,cik,filing_type):
 
-        dir = Path(f'{self.file_path}\\{cik}\\{filing_type}\\sec-edgar-filings')
-        clear_stage("raw")
+        dir = Path(f'{path}\\{cik}\\{filing_type}\\sec-edgar-filings')
+        clear_stage(self.conn,"raw","10_K_FILINGS")
         files = [get_leaf_folder(str(subdir)).replace("\\","/") for subdir in dir.iterdir() if subdir.is_dir()]
-        load_to_stage("raw",files)
+        load_to_stage(self.conn,"raw",files)
         print("Upload process completed.")
 
-    def __load_filings(self,filing_type,amount = 10):
+    def __load_filings(self,path,filing_type,amount = 10):
         ciks = get_CIKs()
         keys = list(ciks.keys())[:amount]
         for key in keys:
-            self.__download_filing(filing_type,amount)
-            self.__upload_filing(filing_type,ciks[key]["cik"])
+            self.__download_filing(path,ciks[key]["cik_str"],filing_type)
+            self.__upload_filing(path,ciks[key]["cik_str"],filing_type)
 
-    def load_10k_filnings(self,amount = 10):
-        self.__load_filings("10-K",amount)
+    def load_10k_filings(self,amount = 10):
+        path = os.path.join(self.file_path,"10_k_filings")
+        self.__load_filings(path,"10-K",amount)
+
+    def close(self): 
+        self.conn.close()

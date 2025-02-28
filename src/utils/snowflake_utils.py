@@ -41,8 +41,8 @@ def get_snowflake_config():
     return config["snowflake"]
 
 def get_stage_name(schema,stage): 
-    config = get_schema_config(schema)
-    return f'{config["database"]}.{config["schema"]}.{stage}'
+    config = get_schema_config(schema)[schema]
+    return f'{config["database"]}.{config["schema"]}."{stage}"'
 
 def load_to_stage(conn, schema, files): 
     stage = get_stage_name(schema)
@@ -56,8 +56,8 @@ def load_to_stage(conn, schema, files):
         print(f"Successfully uploaded {len(files)} files to stage {stage}...\n")
 
 
-def clear_stage(conn, schema):
-    stage = get_stage_name(schema)
+def clear_stage(conn, schema,stage):
+    stage = get_stage_name(schema,stage)
     try: 
         curr = conn.cursor()
         print(f"Removing files from stage {stage}...\n")
