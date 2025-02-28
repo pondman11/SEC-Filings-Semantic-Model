@@ -18,7 +18,6 @@ class Chat:
         cur.close()
         return completion[0]
     
- 
     def __get_prompt(self, prompt): 
         config_path = os.path.join(os.path.dirname(__file__), "..","..","config","prompts", "prompts.yml")
         with open(config_path, "r") as file:
