@@ -1,5 +1,4 @@
-prompts: 
-  categorization: >
+categorization: >
     Suppose you are analyzing company 10-K filings. 
     Given the context in the following chunk of text summarize the chunk in a single word. 
     The word should come from one of the following categories: 
@@ -21,3 +20,5 @@ prompts:
     If the summary does not fit into one of the categories, provide a blank response. 
     In your response do not include anything other than the word or empty response. 
     Here is the chunk:"
+test: > 
+    Explain to me the purpose of life. 
