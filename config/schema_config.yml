@@ -28,6 +28,9 @@ raw:
     UDFS: 
       requires_sse: false
       is_directory: false
+    COMPANIES: 
+      requires_sse: false
+      is_directory: false
   udfs:
     chunk_text:
       source: "chunk_text.py" 

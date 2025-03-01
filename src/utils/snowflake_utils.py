@@ -41,8 +41,7 @@ def get_snowflake_config():
     return config["snowflake"]
 
 def get_stage_name(schema,stage): 
-    config = get_schema_config(schema)
-    return f'{config["database"]}.{config["schema"]}."{stage}"'
+    return f'{schema["database"]}.{schema["schema"]}."{stage}"'
 
 def load_to_stage(conn,schema,stage,dir,ext): 
     stage = get_stage_name(schema,stage)
@@ -155,6 +154,6 @@ def configure_environment(conn,schema_config):
     create_udfs(conn,schema_config)
 
 def configure_environments(conn): 
-    schema_config = get_schema_config("schema_config.yml")
-    for schema in schema_config.keys(): 
-        configure_environment(conn,schema_config[schema])
+    schemas = load_config("schema_config.yml")
+    for schema in schemas.keys(): 
+        configure_environment(conn,schemas[schema])

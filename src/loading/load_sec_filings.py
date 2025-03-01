@@ -3,7 +3,7 @@ from sec_edgar_downloader import Downloader
 import snowflake.connector as sf
 from pathlib import Path
 from bs4 import BeautifulSoup
-from src.utils.snowflake_utils import load_to_stage, clear_stage, connect
+from src.utils.snowflake_utils import load_to_stage, clear_stage, connect, get_schema_config
 from src.utils.web_retrieval_utils import get_CIKs
 from src.utils.file_utils import get_leaf_folder, create_text_file
 import os
@@ -47,10 +47,10 @@ class SECEdgarUploader:
         return date, text[idx:]
 
     def __upload_filing(self,path,ticker,filing_type):
-
-        clear_stage(self.conn,"raw","10_K_FILINGS")
+        schema = get_schema_config("raw")
+        clear_stage(self.conn,schema,"10_K_FILINGS")
         dir = get_leaf_folder(f'{path}\\sec-edgar-filings\\{ticker}\\{filing_type}')
-        load_to_stage(self.conn,"raw","10_K_FILINGS",dir,"txt")
+        load_to_stage(self.conn,schema,"10_K_FILINGS",dir,"txt")
         print("Upload process completed.")
 
     def __load_filings(self,path,filing_type,amount = 10):
