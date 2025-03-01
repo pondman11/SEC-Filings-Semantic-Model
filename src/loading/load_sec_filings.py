@@ -42,9 +42,9 @@ class SECEdgarUploader:
         soup = BeautifulSoup(html, 'html.parser')
         date = soup.find('title').get_text().split('-')[-1]
         text = soup.get_text()
-        idx = text.find('Table of Contents')
+       
 
-        return date, text[idx:]
+        return date, text
 
     def __upload_filing(self,path,ticker,filing_type):
         schema = get_schema_config("raw")

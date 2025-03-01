@@ -48,7 +48,7 @@ def load_to_stage(conn,schema,stage,dir,ext):
     try: 
         curr = conn.cursor()
         print(f"Uploading {dir} to stage {stage}...\\n") 
-        curr.execute(f"PUT file://{dir}/*.{ext} @{stage} AUTO_COMPRESS=TRUE")
+        curr.execute(f"PUT file://{dir}/*.{ext} @{stage} AUTO_COMPRESS=FALSE")
     finally:
         curr.close()
         print(f"Successfully uploaded files to stage {stage}...\n")
