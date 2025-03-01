@@ -34,29 +34,28 @@ def check_snowflake_database(conn):
 
 def get_schema_config(schema):
     config = load_config("schema_config.yml")
-    return config
+    return config[schema]
 
 def get_snowflake_config(): 
     config = load_config("snowflake_connection_config.yml")
     return config["snowflake"]
 
 def get_stage_name(schema,stage): 
-    config = get_schema_config(schema)[schema]
+    config = get_schema_config(schema)
     return f'{config["database"]}.{config["schema"]}."{stage}"'
 
-def load_to_stage(conn, schema, files): 
-    stage = get_stage_name(schema)
+def load_to_stage(conn,schema,stage,dir,ext): 
+    stage = get_stage_name(schema,stage)
     try: 
         curr = conn.cursor()
-        for file in files:
-            print(f"Uploading {file} to stage {stage}...\\n") 
-            curr.execute(f"PUT file://{file}/*.txt @{stage} AUTO_COMPRESS=TRUE")
+        print(f"Uploading {dir} to stage {stage}...\\n") 
+        curr.execute(f"PUT file://{dir}/*.{ext} @{stage} AUTO_COMPRESS=TRUE")
     finally:
         curr.close()
-        print(f"Successfully uploaded {len(files)} files to stage {stage}...\n")
+        print(f"Successfully uploaded files to stage {stage}...\n")
 
 
-def clear_stage(conn, schema,stage):
+def clear_stage(conn,schema,stage):
     stage = get_stage_name(schema,stage)
     try: 
         curr = conn.cursor()
@@ -68,7 +67,7 @@ def clear_stage(conn, schema,stage):
 
 
 def stage_udf_file(conn,schema_config,udf):
-    stage = f'{schema_config["database"]}.{schema_config["schema"]}.UDFS'
+    stage = get_stage_name(schema_config,"UDFS")
     try: 
         curr = conn.cursor()
         print(f"Loading UDFs to stage {stage}...\n")
@@ -78,7 +77,7 @@ def stage_udf_file(conn,schema_config,udf):
         print(f"Successfully loaded UDFs to stage {stage}...\n")
 
 def create_udf(conn,schema_config,udf,stage="UDFS"): 
-    stage = f'{schema_config["database"]}.{schema_config["schema"]}.{stage}'
+    stage = get_stage_name(schema_config,stage)
     try: 
         curr = conn.cursor()
         stage_udf_file(conn,schema_config,udf)
