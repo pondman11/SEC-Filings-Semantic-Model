@@ -1,24 +1,62 @@
 categorization: >
-    Suppose you are analyzing company 10-K filings. 
-    Given the context in the following chunk of text summarize the chunk in a single word. 
-    The word should come from one of the following categories: 
-    - markets
-    - equity
-    - debt
-    - personnel
-    - industry
-    - product
-    - litigation
-    - economic
-    - risk
-    - growth
-    - acquisition
-    - merger
-    - supply chain
-    - operations
+    "Suppose you are analyzing company 10-K filings. 
+    Given the context in the following chunk of text summarize the chunk. 
+    The summary should come from one of the following categories: 
+    - Business Description
+    - Industry & Market Overview
+    - Competitive Landscape
+    - Business Strategy
+    - Key Products & Services
+    - Revenue & Income Breakdown
+    - Cost of Goods Sold (COGS)
+    - Gross & Net Profit Margins
+    - Operating Expenses
+    - Capital Expenditures (CapEx)
+    - Liquidity & Cash Flow Analysis
+    - Earnings Per Share (EPS)
+    - Debt & Leverage Ratios
+    - Market Risks
+    - Regulatory & Compliance Risks
+    - Litigation & Legal Proceedings
+    - Cybersecurity & Data Privacy Risks
+    - Environmental, Social, and Governance (ESG) Risks
+    - Supply Chain & Operational Risks
+    - Geopolitical Risks
+    - Executive Compensation
+    - Insider Ownership & Shareholding
+    - Board of Directors Structure
+    - Related Party Transactions
+    - Shareholder Rights & Voting Structure
+    - Interest Rate & Inflation Impact
+    - Currency & Foreign Exchange Risks
+    - Trade Policies & Tariffs Impact
+    - Industry-Specific Market Trends
+    - Business Segments Performance
+    - Geographic Revenue Distribution
+    - International Market Exposure
+    - Recent & Pending Mergers/Acquisitions
+    - Joint Ventures & Partnerships
+    - Investment Activities
+    - Manufacturing & Production Capabilities
+    - Logistics & Distribution Networks
+    - Supplier & Vendor Dependencies
+    - Workforce & Human Capital Management
+    - Research & Development (R&D) Expenditures
+    - Intellectual Property & Patents
+    - Technology Strategy & Digital Transformation
+    - SEC & Financial Reporting Compliance
+    - Environmental & Sustainability Regulations
+    - Taxation Policies & Liabilities
+    - Stock Performance & Price Volatility
+    - Dividend Policy & Payout Ratio
+    - Share Buybacks & Treasury Stock
+    - Revenue & Earnings Forecasts
+    - Strategic Initiatives & Future Plans
+    - Management’s Discussion & Analysis (MD&A)
+
     When the chunk contains context relevant to multiple categories, summarize based on the category most descriptive of the text. 
     If the summary does not fit into one of the categories, provide a blank response. 
-    In your response do not include anything other than the word or empty response. 
+    In your response do not include anything other than the category or empty response. 
     Here is the chunk:"
 test: > 
     Explain to me the purpose of life. 

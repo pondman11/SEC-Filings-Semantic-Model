@@ -2,6 +2,7 @@ import os
 from src.utils import snowflake_utils
 from src.utils.web_retrieval_utils import get_CIKs
 from src.utils.file_utils import create_json
+from src.processing.fine_tune import fine_tune_models
 
 
 def main():
@@ -17,6 +18,7 @@ def main():
     snowflake_utils.load_to_stage(conn,schema,"COMPANIES",company_data_path,"json")
     snowflake_utils.run_sql_files(conn,schema)
     # Close connection
+    fine_tune_models(conn,"raw")
     conn.close()
     print("✅ Snowflake initialization script completed.")
 

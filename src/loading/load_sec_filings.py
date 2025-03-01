@@ -28,6 +28,7 @@ class SECEdgarUploader:
                 print(f"Successfully downloaded {filing_type} filing for {ticker}.\n")
             except Exception as e:
                 print(f"Error downloading {filing_type} filing for {ticker}: {e}")
+                raise e
 
     def __replace_html_file(self,path,ticker,filing_type):
         html_path = get_leaf_folder(f'{path}\\sec-edgar-filings\\{ticker}\\{filing_type}')
@@ -48,7 +49,6 @@ class SECEdgarUploader:
 
     def __upload_filing(self,path,ticker,filing_type):
         schema = get_schema_config("raw")
-        clear_stage(self.conn,schema,"10_K_FILINGS")
         dir = get_leaf_folder(f'{path}\\sec-edgar-filings\\{ticker}\\{filing_type}')
         load_to_stage(self.conn,schema,"10_K_FILINGS",dir,"txt")
         print("Upload process completed.")
@@ -57,8 +57,11 @@ class SECEdgarUploader:
         ciks = get_CIKs()
         keys = list(ciks.keys())[:amount]
         for key in keys:
-            self.__download_filing(path,ciks[key]["ticker"],filing_type)
-            self.__upload_filing(path,ciks[key]["ticker"],filing_type)
+            try: 
+                self.__download_filing(path,ciks[key]["ticker"],filing_type)
+                self.__upload_filing(path,ciks[key]["ticker"],filing_type)
+            except Exception as e:
+                print(f"Error loading {filing_type} filing for {ciks[key]['ticker']}: {e}")
 
     def load_10k_filings(self,amount = 10):
         self.__load_filings(self.file_path,"10-K",amount)
