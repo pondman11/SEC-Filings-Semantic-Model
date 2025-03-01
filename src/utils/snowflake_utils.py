@@ -146,6 +146,23 @@ def create_tables(conn,schema_config):
     for table in schema_config["tables"].keys(): 
         create_table(conn,schema_config,table)
 
+def run_sql_file(conn,sql_file):
+    path = os.path.join(os.path.dirname(__file__), "..","..","sql",sql_file) 
+    with open(path,"r") as file: 
+        sql = file.read()
+    try: 
+        statements = sql.split(";")
+        curr = conn.cursor()
+        for statement in statements: 
+            curr.execute(statement)
+        
+    finally: 
+        curr.close()
+
+def run_sql_files(conn,schema_config):
+    for sql_file in schema_config["sql_files"]: 
+        run_sql_file(conn,sql_file)
+
 def configure_environment(conn,schema_config): 
     create_database(conn,schema_config)
     create_schema(conn,schema_config)

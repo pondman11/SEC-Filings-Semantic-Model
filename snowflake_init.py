@@ -10,12 +10,12 @@ def main():
 
     # Run database setup
     #snowflake_utils.configure_environments(conn)
-    company_data_path = os.path.join(os.path.dirname(__file__),"data","companies")
-    create_json(company_data_path,"CIKs.json", get_CIKs())
+    #company_data_path = os.path.join(os.path.dirname(__file__),"data","companies")
+    #create_json(company_data_path,"CIKs.json", get_CIKs())
     schema = snowflake_utils.get_schema_config("raw")
-    snowflake_utils.clear_stage(conn,schema,"COMPANIES")
-    snowflake_utils.load_to_stage(conn,schema,"COMPANIES",company_data_path,"json")
-
+    #snowflake_utils.clear_stage(conn,schema,"COMPANIES")
+    #snowflake_utils.load_to_stage(conn,schema,"COMPANIES",company_data_path,"json")
+    snowflake_utils.run_sql_files(conn,schema)
     # Close connection
     conn.close()
     print("✅ Snowflake initialization script completed.")

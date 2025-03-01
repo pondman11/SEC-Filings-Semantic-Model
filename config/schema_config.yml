@@ -21,6 +21,16 @@ raw:
         TYPE: "VARCHAR(16777216)"
       AS_OF_DATE: 
         TYPE: "VARCHAR(16777216)"
+    COMPANIES_RAW: 
+      RAW_JSON: 
+        TYPE: "VARIANT"
+    COMPANIES: 
+      CIK: 
+        TYPE: "INTEGER"
+      TICKER: 
+        TYPE: "VARCHAR"
+      TITLE: 
+        TYPE: "VARCHAR"   
   stages: 
     10_K_FILINGS: 
       requires_sse: true
@@ -52,3 +62,5 @@ raw:
         packages = ('snowflake-snowpark-python')
         handler='read_file.read_file'
         imports=('@UDFS/read_file.py');
+  sql_files: 
+    - "companies_setup.sql"
