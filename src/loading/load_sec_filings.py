@@ -8,7 +8,7 @@ from src.utils.web_retrieval_utils import get_CIKs
 from src.utils.file_utils import get_leaf_folder, create_text_file, delete_dir
 import os
 from datetime import datetime
-
+import re
 class SECEdgarUploader: 
 
     def __init__(self,filing_type,conn = None): 
@@ -35,18 +35,58 @@ class SECEdgarUploader:
         html_path = get_leaf_folder(f'{path}\\sec-edgar-filings\\{ticker}\\{filing_type}')
         with open(f'{html_path}\primary-document.html', 'r') as file:
             html = file.read()
-        date, text = self.__clean_html(html)
+        text, date = self.__clean_html(html)
         os.remove(f'{html_path}\\full-submission.txt')
         create_text_file(f'{html_path}\{ticker}_{date}.txt',text)
         os.remove(f'{html_path}\\primary-document.html')
 
     def __clean_html(self,html):
         soup = BeautifulSoup(html, 'html.parser')
-        date = soup.find('title').get_text().split('-')[-1]
-        text = soup.get_text()
-       
 
-        return date, text
+        # Extract the filing date from the title
+        title_text = soup.find('title')
+        date = title_text.get_text().split('-')[-1] if title_text else "Unknown Date"
+
+        # Remove scripts, styles, and metadata
+        for tag in soup(["script", "style", "meta", "head"]):
+            tag.decompose()
+
+        # Extract text content
+        text = soup.get_text(separator=" ")
+
+        # Remove SEC disclaimers and boilerplate text
+        boilerplate_patterns = [
+            r"This document has been truncated", 
+            r"This is an HTML version of an ASCII filing",
+            r"Filed with the Securities and Exchange Commission",
+            r"\bUNITED STATES SECURITIES AND EXCHANGE COMMISSION\b",
+            r"\bWashington, D\.C\.\s*\d+\b",  # Matches SEC office locations
+            r"Form\s+10-K",  # If "Form 10-K" appears multiple times, remove early occurrences
+            r"Table of Contents\s*\n+",
+        ]
+        
+        for pattern in boilerplate_patterns:
+            text = re.sub(pattern, '', text, flags=re.IGNORECASE)
+
+        # Locate the actual start of the filing content
+        start_keywords = ["Table of Contents", "PART I", "Item 1."]
+        start_index = None
+
+        for keyword in start_keywords:
+            match = re.search(rf"\b{keyword}\b", text, re.IGNORECASE)
+            if match:
+                start_index = match.start()
+                break
+
+        if start_index:
+            text = text[start_index:]
+
+        # Remove excessive whitespace and empty lines
+        text = re.sub(r"\n\s*\n+", "\n\n", text).strip()
+
+        return text, date
+
+
 
     def __upload_filing(self,path,ticker,filing_type):
         schema = get_schema_config("raw")
@@ -59,9 +99,13 @@ class SECEdgarUploader:
         delete_dir(f'{path}\\sec-edgar-filings\\{ticker}')
         print("Upload process completed.")
 
-    def __load_filings(self,path,filing_type,amount = 10):
+    def __load_filings(self,path,filing_type,amount = None):
         ciks = get_CIKs()
-        keys = list(ciks.keys())[:amount]
+        keys = list(ciks.keys())
+
+        if amount != None: 
+            keys = keys[:amount]
+            
         for key in keys:
             try: 
                 self.__download_filing(path,ciks[key]["ticker"],filing_type)
