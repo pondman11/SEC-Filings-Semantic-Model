@@ -1,6 +1,7 @@
 from pathlib import Path
 import json
 import os
+import shutil
 
 def get_leaf_folder(base_path):
     
@@ -18,3 +19,8 @@ def create_json(path,file_name,data):
     os.makedirs(path, exist_ok=True)
     with open(f'{path}\\{file_name}', 'w', encoding='utf-8') as file:
         json.dump(data, file, indent=4)
+
+def delete_dir(base_path): 
+
+    path = Path(base_path)
+    shutil.rmtree(path)

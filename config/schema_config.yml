@@ -24,7 +24,9 @@ raw:
     COMPANIES_RAW: 
       RAW_JSON: 
         TYPE: "VARIANT"
-    COMPANIES: 
+    COMPANIES:
+      ID: 
+        TYPE: "INTEGER" 
       CIK: 
         TYPE: "INTEGER"
       TICKER: 

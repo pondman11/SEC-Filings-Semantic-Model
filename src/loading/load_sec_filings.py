@@ -3,10 +3,11 @@ from sec_edgar_downloader import Downloader
 import snowflake.connector as sf
 from pathlib import Path
 from bs4 import BeautifulSoup
-from src.utils.snowflake_utils import load_to_stage, clear_stage, connect, get_schema_config
+from src.utils.snowflake_utils import load_to_stage, refresh_stage, exectute_task, connect, get_schema_config
 from src.utils.web_retrieval_utils import get_CIKs
-from src.utils.file_utils import get_leaf_folder, create_text_file
+from src.utils.file_utils import get_leaf_folder, create_text_file, delete_dir
 import os
+from datetime import datetime
 
 class SECEdgarUploader: 
 
@@ -50,7 +51,12 @@ class SECEdgarUploader:
     def __upload_filing(self,path,ticker,filing_type):
         schema = get_schema_config("raw")
         dir = get_leaf_folder(f'{path}\\sec-edgar-filings\\{ticker}\\{filing_type}')
-        load_to_stage(self.conn,schema,"10_K_FILINGS",dir,"txt")
+        formatted_date = datetime.now().strftime('%Y%m%d')
+        stage_folder = f'{formatted_date}/{ticker}'
+        load_to_stage(self.conn,schema,"10_K_FILINGS",dir,"txt",stage_folder)
+        refresh_stage(self.conn,schema,"10_K_FILINGS")
+        exectute_task(self.conn,schema,"PROCESS_CHUNKS")
+        delete_dir(f'{path}\\sec-edgar-filings\\{ticker}')
         print("Upload process completed.")
 
     def __load_filings(self,path,filing_type,amount = 10):

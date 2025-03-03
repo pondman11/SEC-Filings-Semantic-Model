@@ -1,6 +1,7 @@
 import yaml
 import os
 import snowflake.connector
+import time
 
 def load_config(file_name):
     """Load Snowflake credentials from YAML configuration file."""
@@ -43,8 +44,10 @@ def get_snowflake_config():
 def get_stage_name(schema,stage): 
     return f'{schema["database"]}.{schema["schema"]}."{stage}"'
 
-def load_to_stage(conn,schema,stage,dir,ext): 
+def load_to_stage(conn,schema,stage,dir,ext, sub_folder = None): 
     stage = get_stage_name(schema,stage)
+    if sub_folder != None: 
+        stage = f'{stage}/{sub_folder}'
     try: 
         curr = conn.cursor()
         print(f"Uploading {dir} to stage {stage}...\\n") 
@@ -53,6 +56,26 @@ def load_to_stage(conn,schema,stage,dir,ext):
         curr.close()
         print(f"Successfully uploaded files to stage {stage}...\n")
 
+def refresh_stage(conn,schema,stage):
+    try: 
+        curr = conn.cursor()
+        print(f"Refreshing stage {stage}...\n")
+        curr.execute(f"USE SCHEMA {schema['database']}.{schema['schema']};")
+        curr.execute(f'ALTER STAGE "{stage}" REFRESH;')
+    finally:
+        curr.close()
+        print(f"Successfully refreshed stage {stage}...\n") 
+
+def exectute_task(conn,schema, task_name):
+    try:
+        curr = conn.cursor()
+        print(f"Executing task {task_name}...\n")
+        curr.execute(f"USE SCHEMA {schema['database']}.{schema['schema']};")
+        curr.execute(f"EXECUTE TASK {task_name};")
+    finally:
+        curr.close()
+        time.sleep(30)
+        print(f"Successfully executed task {task_name}...\n")
 
 def clear_stage(conn,schema,stage):
     stage = get_stage_name(schema,stage)
